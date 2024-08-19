@@ -1,33 +1,37 @@
 pipeline {
     agent any
     stages {
-        stage('Get Instance ID') {
+        stage('Get Instance ID and Tags') {
             steps {
                 script {
-                    // Prompt the user for the instance ID
-                    env.INSTANCE_ID = input message: 'Enter the Instance ID to tag:', parameters: [string(name: 'INSTANCE_ID', defaultValue: '')]
-                }
-            }
-        }
-        stage('Get Number of Tags') {
-            steps {
-                script {
-                    // Prompt the user for the number of tags
-                    env.NUMBER_OF_TAGS = input message: 'How many tags do you want to add?', parameters: [string(name: 'NUMBER_OF_TAGS', defaultValue: '1')]
-                    env.NUMBER_OF_TAGS = env.NUMBER_OF_TAGS.toInteger()
-                }
-            }
-        }
-        stage('Get Tags') {
-            steps {
-                script {
+                    // Prompt the user for the instance ID and number of tags
+                    def inputs = input(
+                        message: 'Provide the instance ID and tags',
+                        parameters: [
+                            string(name: 'INSTANCE_ID', description: 'Enter the Instance ID to tag'),
+                            string(name: 'NUMBER_OF_TAGS', description: 'How many tags do you want to add?', defaultValue: '1')
+                        ]
+                    )
+ 
+                    env.INSTANCE_ID = inputs['INSTANCE_ID']
+                    def numberOfTags = inputs['NUMBER_OF_TAGS'].toInteger()
+ 
+                    // Initialize an empty map to store tags
                     def tags = [:]
-                    for (int i = 1; i <= env.NUMBER_OF_TAGS; i++) {
-                        // Use input within the loop correctly to only prompt as many times as needed
-                        def tagKey = input message: "Enter key for tag ${i}:", parameters: [string(name: "TAG_KEY_${i}", defaultValue: '')]
-                        def tagValue = input message: "Enter value for tag ${i}:", parameters: [string(name: "TAG_VALUE_${i}", defaultValue: '')]
-                        tags[tagKey] = tagValue
+ 
+                    // Dynamically create input steps for each tag key-value pair
+                    for (int i = 1; i <= numberOfTags; i++) {
+                        def tagInputs = input(
+                            message: "Enter key and value for tag ${i}",
+                            parameters: [
+                                string(name: "TAG_KEY_${i}", description: "Enter key for tag ${i}"),
+                                string(name: "TAG_VALUE_${i}", description: "Enter value for tag ${i}")
+                            ]
+                        )
+                        // Add each key-value pair to the tags map
+                        tags[tagInputs["TAG_KEY_${i}"]] = tagInputs["TAG_VALUE_${i}"]
                     }
+ 
                     // Store tags as a JSON string in the environment variable
                     env.TAGS_JSON = new groovy.json.JsonBuilder(tags).toString()
                 }
@@ -49,3 +53,4 @@ pipeline {
         }
     }
 }
+has context menu
