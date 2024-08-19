@@ -16,8 +16,8 @@ pipeline {
                     env.INSTANCE_ID = inputs['INSTANCE_ID']
                     def numberOfTags = inputs['NUMBER_OF_TAGS'].toInteger()
  
-                    // Initialize an empty map to store tags
-                    def tags = [:]
+                    // Initialize an empty list to store tags
+                    def tagList = []
  
                     // Dynamically create input steps for each tag key-value pair
                     for (int i = 1; i <= numberOfTags; i++) {
@@ -28,23 +28,20 @@ pipeline {
                                 string(name: "TAG_VALUE_${i}", description: "Enter value for tag ${i}")
                             ]
                         )
-                        // Add each key-value pair to the tags map
-                        tags[tagInputs["TAG_KEY_${i}"]] = tagInputs["TAG_VALUE_${i}"]
+                        // Add each key-value pair to the tag list
+                        tagList.add("Key=${tagInputs["TAG_KEY_${i}"]},Value=${tagInputs["TAG_VALUE_${i}"]}")
                     }
  
-                    // Store tags as a JSON string in the environment variable
-                    env.TAGS_JSON = new groovy.json.JsonBuilder(tags).toString()
+                    // Store the tags in the environment variable as a space-separated string
+                    env.TAGS_STRING = tagList.join(" ")
                 }
             }
         }
         stage('Tag EC2 Instance') {
             steps {
                 script {
-                    def tags = new groovy.json.JsonSlurper().parseText(env.TAGS_JSON)
-                    def tagString = tags.collect { key, value -> "Key=${key},Value=${value}" }.join(" ")
-                    
                     // Construct and run the AWS CLI command to tag the EC2 instance
-                    def command = "aws ec2 create-tags --resources ${env.INSTANCE_ID} --tags ${tagString}"
+                    def command = "aws ec2 create-tags --resources ${env.INSTANCE_ID} --tags ${env.TAGS_STRING}"
                     echo "Running command: ${command}"
                     
                     sh command
@@ -53,4 +50,3 @@ pipeline {
         }
     }
 }
-has context menu
