@@ -13,7 +13,8 @@ pipeline {
             steps {
                 script {
                     // Prompt the user for the number of tags
-                    env.NUMBER_OF_TAGS = input message: 'How many tags do you want to add?', parameters: [string(name: 'NUMBER_OF_TAGS', defaultValue: '1')].toInteger()
+                    env.NUMBER_OF_TAGS = input message: 'How many tags do you want to add?', parameters: [string(name: 'NUMBER_OF_TAGS', defaultValue: '1')]
+                    env.NUMBER_OF_TAGS = env.NUMBER_OF_TAGS.toInteger()
                 }
             }
         }
@@ -28,11 +29,8 @@ pipeline {
                         tags[tagKey] = tagValue
                     }
                     // Store tags as a JSON string in the environment variable
-                    env.TAGS_JSON = new groovy.json.JsonBuilder(tags).toString()
-                }
-            }
-        }
-        stage('Tag EC2 Instance') {
+                    env.TAGS_JSON = new groovy.json.JsonBuilder
+                            stage('Tag EC2 Instance') {
             steps {
                 script {
                     def tags = new groovy.json.JsonSlurper().parseText(env.TAGS_JSON)
