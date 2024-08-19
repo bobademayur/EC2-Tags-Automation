@@ -23,7 +23,7 @@ pipeline {
                 script {
                     def tags = [:]
                     for (int i = 1; i <= env.NUMBER_OF_TAGS; i++) {
-                        // Prompt the user for each tag key and value
+                        // Use input within the loop correctly to only prompt as many times as needed
                         def tagKey = input message: "Enter key for tag ${i}:", parameters: [string(name: "TAG_KEY_${i}", defaultValue: '')]
                         def tagValue = input message: "Enter value for tag ${i}:", parameters: [string(name: "TAG_VALUE_${i}", defaultValue: '')]
                         tags[tagKey] = tagValue
